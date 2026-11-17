@@ -12,10 +12,6 @@ $fieldGroups = [
         'organization_email' => 'Alamat email',
         'contact_phone_prefix' => 'Awalan label telepon',
         'contact_email_prefix' => 'Awalan label email',
-        'regulation_attachment' => 'Teks lampiran regulasi',
-        'regulation_name' => 'Nama peraturan',
-        'regulation_number' => 'Nomor peraturan',
-        'regulation_subject' => 'Tentang peraturan',
         'form_model' => 'Nama formulir',
     ],
     'Judul dan Data Pengawas' => [
@@ -122,28 +118,16 @@ $previewGroups = $fieldGroups;
                             <label for="<?= esc($field) ?>" class="mb-2 block text-sm font-medium text-slate-700">
                                 <?= esc($label) ?>
                             </label>
-                            <?php if (in_array($field, ['regulation_name', 'regulation_subject'], true)) : ?>
-                                <textarea
-                                    id="<?= esc($field) ?>"
-                                    name="<?= esc($field) ?>"
-                                    maxlength="150"
-                                    required
-                                    rows="2"
-                                    data-preview="<?= esc($field) ?>"
-                                    class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                ><?= esc(old($field, $template[$field])) ?></textarea>
-                            <?php else : ?>
-                                <input
-                                    id="<?= esc($field) ?>"
-                                    name="<?= esc($field) ?>"
-                                    type="text"
-                                    maxlength="150"
-                                    required
-                                    value="<?= esc(old($field, $template[$field])) ?>"
-                                    data-preview="<?= esc($field) ?>"
-                                    class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                >
-                            <?php endif; ?>
+                            <input
+                                id="<?= esc($field) ?>"
+                                name="<?= esc($field) ?>"
+                                type="text"
+                                maxlength="150"
+                                required
+                                value="<?= esc(old($field, $template[$field])) ?>"
+                                data-preview="<?= esc($field) ?>"
+                                class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
                             <?php if (isset($errors[$field])) : ?>
                                 <p class="mt-1 text-sm text-red-600"><?= esc($errors[$field]) ?></p>
                             <?php endif; ?>

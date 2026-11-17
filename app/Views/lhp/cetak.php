@@ -124,7 +124,7 @@ $adaSengketa = (int) ($lhp['ada_potensi_sengketa'] ?? 0) === 1;
             font-size: 9pt;
         }
 
-        .regulation-heading {
+        .form-model {
             font-size: 9pt;
             line-height: 1.2;
             margin: 0 auto 8px;
@@ -275,10 +275,7 @@ $adaSengketa = (int) ($lhp['ada_potensi_sengketa'] ?? 0) === 1;
         </div>
     </header>
 
-    <div class="regulation-heading">
-        <?= esc($template['regulation_attachment']) ?><br>
-        <?= esc($template['regulation_name']) ?><br>
-        <?= esc($template['regulation_number']) ?> <?= esc($template['regulation_subject']) ?><br>
+    <div class="form-model">
         <?= esc($template['form_model']) ?>
     </div>
 

@@ -74,10 +74,6 @@ class Lhp extends BaseController
         }
 
         $lhp = $builder->paginate(10);
-        foreach ($lhp as &$item) {
-            $item['completeness'] = $this->calculateCompleteness($item);
-        }
-        unset($item);
 
         $db = db_connect();
         $stageOptionsBuilder = $db->table('lhp')
@@ -306,7 +302,6 @@ class Lhp extends BaseController
             'title'        => 'Detail LHP',
             'lhp'          => $lhp,
             'lampiran'     => $lampiran,
-            'completeness' => $this->calculateCompleteness($lhp),
             'returnQuery'  => http_build_query(array_filter([
                 'keyword' => $this->request->getGet('keyword'),
                 'status' => $this->request->getGet('status'),
@@ -575,47 +570,8 @@ class Lhp extends BaseController
         return $builder->first();
     }
 
-    private function calculateCompleteness(array $lhp): array
-    {
-        $requiredFields = [
-            'nomor_lhp' => 'Nomor LHP',
-            'tahapan' => 'Tahapan',
-            'nama_pengawas' => 'Nama Pengawas',
-            'jabatan_pengawas' => 'Jabatan',
-            'bentuk_pengawasan' => 'Bentuk Pengawasan',
-            'tujuan_pengawasan' => 'Tujuan Pengawasan',
-            'sasaran_pengawasan' => 'Sasaran Pengawasan',
-            'waktu_pengawasan' => 'Waktu Pengawasan',
-            'tempat_pengawasan' => 'Tempat Pengawasan',
-            'kecamatan' => 'Kecamatan',
-            'desa' => 'Desa / Kelurahan',
-            'uraian_hasil' => 'Uraian Hasil',
-            'ada_potensi_sengketa' => 'Pernyataan Potensi Sengketa',
-        ];
-        $missing = [];
-
-        foreach ($requiredFields as $field => $label) {
-            $value = $lhp[$field] ?? null;
-            if ($value === null || (is_string($value) && trim($value) === '')) {
-                $missing[] = $label;
-            }
-        }
-
-        $total = count($requiredFields);
-        $completed = $total - count($missing);
-
-        return [
-            'completed' => $completed,
-            'total' => $total,
-            'percentage' => (int) round(($completed / $total) * 100),
-            'missing' => $missing,
-        ];
-    }
-
     /**
      * Gets assignment IDs with all primary LHP fields completed.
-     *
-     * The fields match the primary completeness indicator shown in the LHP list.
      *
      * @return list<int>
      */

@@ -17,17 +17,17 @@ if ($role === 'pengawas') {
         [
             'label' => 'Dashboard',
             'url'   => '/dashboard/pengawas',
-            'icon'  => '⌂',
+            'icon'  => 'fa-solid fa-house',
         ],
         [
             'label' => 'Kelola LHP',
             'url'   => '/lhp',
-            'icon'  => '▤',
+            'icon'  => 'fa-solid fa-file-lines',
         ],
         [
             'label' => 'Profil Saya',
             'url'   => '/profil',
-            'icon'  => '♙',
+            'icon'  => 'fa-solid fa-user',
         ],
     ];
 
@@ -37,27 +37,27 @@ if ($role === 'pengawas') {
         [
             'label' => 'Dashboard',
             'url'   => '/dashboard/pimpinan',
-            'icon'  => '⌂',
+            'icon'  => 'fa-solid fa-house',
         ],
         [
             'label' => 'Kelola Penugasan',
             'url'   => '/kelola-penugasan',
-            'icon'  => '☷',
+            'icon'  => 'fa-solid fa-clipboard-list',
         ],
         [
             'label' => 'Kelola LHP',
             'url'   => '/lhp',
-            'icon'  => '▤',
+            'icon'  => 'fa-solid fa-file-lines',
         ],
         [
             'label' => 'Rekapitulasi LHP',
             'url'   => '/rekapitulasi-lhp',
-            'icon'  => '▤',
+            'icon'  => 'fa-solid fa-chart-column',
         ],
         [
             'label' => 'Profil Saya',
             'url'   => '/profil',
-            'icon'  => '♙',
+            'icon'  => 'fa-solid fa-user',
         ],
     ];
 
@@ -67,27 +67,27 @@ if ($role === 'pengawas') {
         [
             'label' => 'Dashboard',
             'url'   => '/dashboard/admin',
-            'icon'  => '⌂',
+            'icon'  => 'fa-solid fa-house',
         ],
         [
             'label' => 'Kelola Pengguna',
             'url'   => '/kelola-pengguna',
-            'icon'  => '♙',
+            'icon'  => 'fa-solid fa-users',
         ],
         [
             'label' => 'Template Dokumen',
             'url'   => '/kelola-template-lhp',
-            'icon'  => '▧',
+            'icon'  => 'fa-solid fa-file-pen',
         ],
         [
             'label' => 'Kelola LHP',
             'url'   => '/lhp',
-            'icon'  => '▤',
+            'icon'  => 'fa-solid fa-file-lines',
         ],
         [
             'label' => 'Profil Saya',
             'url'   => '/profil',
-            'icon'  => '♙',
+            'icon'  => 'fa-solid fa-user',
         ],
     ];
 
@@ -161,9 +161,7 @@ if ($role === 'pengawas') {
                        ?>"
             >
 
-                <span class="text-xl">
-                    <?= esc($item['icon']) ?>
-                </span>
+                <i class="<?= esc($item['icon']) ?> w-5 text-center text-lg" aria-hidden="true"></i>
 
                 <span class="text-sm font-medium">
                     <?= esc($item['label']) ?>

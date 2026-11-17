@@ -105,10 +105,6 @@
                         </th>
 
                         <th class="px-5 py-3 text-left font-semibold text-gray-600">
-                            Kelengkapan Data
-                        </th>
-
-                        <th class="px-5 py-3 text-left font-semibold text-gray-600">
                             Aksi
                         </th>
                     </tr>
@@ -147,32 +143,6 @@
                                 </td>
 
                                 <td class="px-5 py-4">
-                                    <div class="min-w-32"
-                                         title="<?= $item['completeness']['missing']
-                                            ? esc('Data belum terisi: ' . implode(', ', $item['completeness']['missing']))
-                                            : 'Data utama lengkap' ?>">
-                                        <div class="mb-1 flex items-center justify-between gap-2 text-xs">
-                                            <span class="<?= $item['completeness']['percentage'] === 100
-                                                ? 'text-green-700'
-                                                : 'text-amber-700' ?> font-medium">
-                                                <?= $item['completeness']['percentage'] === 100
-                                                    ? 'Lengkap'
-                                                    : 'Belum lengkap' ?>
-                                            </span>
-                                            <span class="text-gray-500">
-                                                <?= esc($item['completeness']['completed']) ?>/<?= esc($item['completeness']['total']) ?>
-                                            </span>
-                                        </div>
-                                        <div class="h-1.5 overflow-hidden rounded-full bg-gray-100">
-                                            <div class="h-full rounded-full <?= $item['completeness']['percentage'] === 100
-                                                ? 'bg-green-500'
-                                                : 'bg-amber-500' ?>"
-                                                 style="width: <?= esc($item['completeness']['percentage']) ?>%"></div>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <td class="px-5 py-4">
                                     <div class="flex items-center gap-2">
 
                                         <a href="<?= base_url('lhp/detail/' . $item['id'])
@@ -204,7 +174,7 @@
                     <?php else: ?>
 
                         <tr>
-                            <td colspan="7"
+                            <td colspan="6"
                                 class="px-5 py-10 text-center text-gray-500">
                                 Belum ada data LHP yang tersedia.
                             </td>
