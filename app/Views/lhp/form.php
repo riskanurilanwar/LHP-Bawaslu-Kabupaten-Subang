@@ -9,6 +9,17 @@
     $lampiran = $lampiran ?? [];
 
     $isEdit = !empty($lhp);
+    $assignments = $assignments ?? [];
+    $hasFixedAssignment = !empty($lhp['assignment_id'])
+        || (!$isEdit && !empty($assignments));
+    $selectedAssignmentId = old('assignment_id', $assignments[0]['id'] ?? '');
+    $selectedAssignment = null;
+    foreach ($assignments as $assignment) {
+        if ((string) $assignment['id'] === (string) $selectedAssignmentId) {
+            $selectedAssignment = $assignment;
+            break;
+        }
+    }
 
     $formAction = $isEdit
         ? base_url('lhp/update/' . $lhp['id'])
@@ -33,7 +44,7 @@
     </p>
     <?php if (! $isEdit) : ?>
         <p class="mt-2 text-sm text-blue-700">
-        Nomor LHP dibuat otomatis dengan format nomor urut[.huruf kecamatan]/LHP/bulan/tahun. Huruf kecamatan dicantumkan jika LHP diisi setelah tanggal pengawasan.
+        Nomor LHP dibuat otomatis dengan format nomor urut/LHP/PM.01.00/bulan/tahun.
         </p>
     <?php endif; ?>
 
@@ -51,6 +62,31 @@
     <!-- ====================================== -->
     <!-- I. DATA PENGAWAS PEMILIHAN -->
     <!-- ====================================== -->
+
+    <?php if (!empty($assignments) && !$isEdit) : ?>
+        <div class="bg-blue-50 rounded-xl border border-blue-200 p-6">
+            <label for="assignment_id" class="block text-sm font-semibold text-blue-900 mb-2">
+                Penugasan dari Pimpinan
+            </label>
+            <select id="assignment_id" name="assignment_id" required
+                    class="w-full border border-blue-300 rounded-lg px-4 py-3 bg-white"
+                    data-assignment-select>
+                <option value="">Pilih penugasan</option>
+                <?php foreach ($assignments as $assignment) : ?>
+                    <option value="<?= esc($assignment['id']) ?>"
+                            data-tahapan="<?= esc($assignment['tahapan']) ?>"
+                            data-wilayah="<?= esc($assignment['wilayah']) ?>"
+                            data-nama="<?= esc($assignment['nama_pengguna']) ?>"
+                            <?= (string) $selectedAssignmentId === (string) $assignment['id'] ? 'selected' : '' ?>>
+                        <?= esc($assignment['tahapan'] . ' — ' . $assignment['wilayah'] . ' (' . $assignment['nama_pengguna'] . ')') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p class="mt-2 text-sm text-blue-800">
+                Tahapan dan wilayah/kecamatan LHP akan mengikuti penugasan yang dipilih.
+            </p>
+        </div>
+    <?php endif; ?>
 
     <div class="bg-white rounded-xl shadow-sm border
                 border-slate-200 p-6">
@@ -70,8 +106,9 @@
                 <input
                     type="text"
                     name="tahapan"
-                    value="<?= esc($value('tahapan')) ?>"
+                    value="<?= esc($value('tahapan', $selectedAssignment['tahapan'] ?? '')) ?>"
                     required
+                    <?= $hasFixedAssignment ? 'readonly data-assignment-field="tahapan"' : '' ?>
                     class="w-full border border-slate-300
                            rounded-lg px-4 py-3
                            focus:ring-2 focus:ring-blue-500"
@@ -91,10 +128,11 @@
                     value="<?= esc(
                         $value(
                             'nama_pengawas',
-                            session()->get('nama')
+                            $selectedAssignment['nama_pengguna'] ?? session()->get('nama')
                         )
                     ) ?>"
                     required
+                    <?= $hasFixedAssignment ? 'readonly' : '' ?>
                     class="w-full border border-slate-300
                            rounded-lg px-4 py-3"
                 >
@@ -308,8 +346,9 @@
                 <input
                     type="text"
                     name="kecamatan"
-                    value="<?= esc($value('kecamatan')) ?>"
+                    value="<?= esc($value('kecamatan', $selectedAssignment['wilayah'] ?? '')) ?>"
                     required
+                    <?= $hasFixedAssignment ? 'readonly data-assignment-field="wilayah"' : '' ?>
                     class="w-full border border-slate-300
                         rounded-lg px-4 py-3"
                 >
@@ -874,6 +913,33 @@
 <?= $this->section('scripts') ?>
 <script>
     (() => {
+        const penugasanSelect = document.querySelector(
+            '[data-assignment-select]'
+        );
+        const tahapanField = document.querySelector(
+            '[data-assignment-field="tahapan"]'
+        );
+        const wilayahField = document.querySelector(
+            '[data-assignment-field="wilayah"]'
+        );
+        const namaPengawasField = document.querySelector(
+            '[name="nama_pengawas"]'
+        );
+
+        const perbaruiPenugasan = () => {
+            if (!penugasanSelect) {
+                return;
+            }
+
+            const pilihanPenugasan = penugasanSelect.selectedOptions[0];
+            tahapanField.value = pilihanPenugasan?.dataset.tahapan ?? '';
+            wilayahField.value = pilihanPenugasan?.dataset.wilayah ?? '';
+            namaPengawasField.value = pilihanPenugasan?.dataset.nama ?? '';
+        };
+
+        penugasanSelect?.addEventListener('change', perbaruiPenugasan);
+        perbaruiPenugasan();
+
         const pilihan = document.querySelectorAll(
             'input[name="ada_dugaan_pelanggaran"]'
         );

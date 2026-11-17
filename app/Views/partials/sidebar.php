@@ -40,9 +40,9 @@ if ($role === 'pengawas') {
             'icon'  => '⌂',
         ],
         [
-            'label' => 'Monitoring LHP',
-            'url'   => '/monitoring-lhp',
-            'icon'  => '◉',
+            'label' => 'Kelola Penugasan',
+            'url'   => '/kelola-penugasan',
+            'icon'  => '☷',
         ],
         [
             'label' => 'Kelola LHP',
@@ -103,7 +103,7 @@ if ($role === 'pengawas') {
 
         <div class="flex items-center gap-3">
 
-            <div class="w-11 h-11 bg-blue-600
+            <div class="w-11 h-11 bg-red-600
                         rounded-xl flex items-center
                         justify-center font-bold text-lg">
 
@@ -156,7 +156,7 @@ if ($role === 'pengawas') {
                        rounded-lg transition
 
                        <?= $isActive
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-red-600 text-white'
                             : 'text-slate-300 hover:bg-slate-800'
                        ?>"
             >

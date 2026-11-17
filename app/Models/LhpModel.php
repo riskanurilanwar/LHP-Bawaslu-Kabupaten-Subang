@@ -15,6 +15,7 @@ class LhpModel extends Model
 
     protected $allowedFields = [
         'user_id',
+        'assignment_id',
 
         // Identitas laporan
         'nomor_lhp',
@@ -65,11 +66,6 @@ class LhpModel extends Model
         'kerugian_langsung',
         'uraian_sengketa',
 
-        // Status laporan
-        'status_pemeriksaan',
-        'catatan_pimpinan',
-        'diperiksa_oleh',
-        'diperiksa_pada',
     ];
 
     protected $useTimestamps = true;

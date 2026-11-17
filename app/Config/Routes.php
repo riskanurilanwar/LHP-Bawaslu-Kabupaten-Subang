@@ -154,6 +154,23 @@ $routes->post(
     ['filter' => ['auth', 'role:admin']]
 );
 
+$routes->get(
+    'kelola-penugasan',
+    'KelolaPenugasan::index',
+    ['filter' => ['auth', 'role:pimpinan']]
+);
+
+$routes->post(
+    'kelola-penugasan/simpan',
+    'KelolaPenugasan::store',
+    ['filter' => ['auth', 'role:pimpinan']]
+);
+
+$routes->post(
+    'kelola-penugasan/update/(:num)',
+    'KelolaPenugasan::update/$1',
+    ['filter' => ['auth', 'role:pimpinan']]
+);
 
  // =====================================================
  // ROUTE KELOLA LHP
@@ -220,15 +237,6 @@ $routes->post(
     'lhp/hapus/(:num)',
     'Lhp::delete/$1',
     ['filter' => ['auth', 'role:pengawas']]
-);
-
-$routes->get('monitoring-lhp', 'MonitoringLhp::index', [
-    'filter' => 'auth'
-]);
-
-$routes->post(
-    'monitoring-lhp/status/(:num)',
-    'MonitoringLhp::updateStatus/$1'
 );
 
 $routes->get(

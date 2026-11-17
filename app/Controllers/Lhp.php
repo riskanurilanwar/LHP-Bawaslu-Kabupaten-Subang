@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\LhpModel;
 use App\Models\LhpLampiranModel;
 use App\Models\LhpDocumentTemplateModel;
+use App\Models\PenugasanModel;
+use App\Models\UserModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use RuntimeException;
 
@@ -28,7 +30,16 @@ class Lhp extends BaseController
     {
         $role   = session()->get('role');
         $userId = session()->get('user_id');
-        $keyword = trim((string) $this->request->getGet('keyword'));
+        $keyword = $this->request->getGet('keyword');
+        $keyword = is_string($keyword) ? trim($keyword) : '';
+        $status = $this->request->getGet('status');
+        $status = is_string($status) && in_array(strtolower($status), ['draft', 'dikirim'], true)
+            ? strtolower($status)
+            : '';
+        $tahapan = $this->request->getGet('tahapan');
+        $tahapan = is_string($tahapan) ? trim($tahapan) : '';
+        $kecamatan = $this->request->getGet('kecamatan');
+        $kecamatan = is_string($kecamatan) ? trim($kecamatan) : '';
 
         $builder = $this->lhpModel
             ->select('lhp.*')
@@ -39,20 +50,79 @@ class Lhp extends BaseController
             $builder->where('lhp.user_id', $userId);
         }
 
-        // Pencarian
         if ($keyword !== '') {
             $builder->groupStart()
                 ->like('nomor_lhp', $keyword)
                 ->orLike('desa', $keyword)
                 ->orLike('kecamatan', $keyword)
                 ->orLike('nama_pengawas', $keyword)
+                ->orLike('tahapan', $keyword)
+                ->orLike('nomor_surat_tugas', $keyword)
                 ->groupEnd();
         }
 
+        if ($status !== '') {
+            $builder->where('LOWER(lhp.status) =', $status, false);
+        }
+
+        if ($tahapan !== '') {
+            $builder->where('lhp.tahapan', $tahapan);
+        }
+
+        if ($kecamatan !== '') {
+            $builder->where('lhp.kecamatan', $kecamatan);
+        }
+
+        $lhp = $builder->paginate(10);
+        foreach ($lhp as &$item) {
+            $item['completeness'] = $this->calculateCompleteness($item);
+        }
+        unset($item);
+
+        $db = db_connect();
+        $stageOptionsBuilder = $db->table('lhp')
+            ->select('tahapan')
+            ->distinct()
+            ->where('tahapan !=', '')
+            ->orderBy('tahapan', 'ASC');
+        $regionOptionsBuilder = $db->table('lhp')
+            ->select('kecamatan')
+            ->distinct()
+            ->where('kecamatan !=', '')
+            ->orderBy('kecamatan', 'ASC');
+
+        if (in_array($role, ['pengawas', 'staff'], true)) {
+            $stageOptionsBuilder->where('user_id', $userId);
+            $regionOptionsBuilder->where('user_id', $userId);
+        }
+
+        $stageOptions = array_column(
+            $stageOptionsBuilder->get()->getResultArray(),
+            'tahapan'
+        );
+        $regionOptions = array_column(
+            $regionOptionsBuilder->get()->getResultArray(),
+            'kecamatan'
+        );
+
+        $returnQuery = http_build_query(array_filter([
+            'keyword' => $keyword,
+            'status' => $status,
+            'tahapan' => $tahapan,
+            'kecamatan' => $kecamatan,
+        ], static fn ($value): bool => $value !== ''));
+
         $data = [
-            'title' => 'Daftar LHP',
-            'lhp'   => $builder->paginate(10),
-            'pager' => $this->lhpModel->pager,
+            'title'            => 'Daftar LHP',
+            'lhp'              => $lhp,
+            'pager'            => $this->lhpModel->pager,
+            'keyword'          => $keyword,
+            'statusFilter'     => $status,
+            'tahapanFilter'    => $tahapan,
+            'kecamatanFilter'  => $kecamatan,
+            'tahapanOptions'   => $stageOptions,
+            'kecamatanOptions' => $regionOptions,
+            'returnQuery'      => $returnQuery,
         ];
 
         return view('lhp/index', $data);
@@ -68,9 +138,36 @@ class Lhp extends BaseController
                 ->with('error', 'Anda tidak memiliki akses untuk membuat LHP.');
         }
 
+        $db = db_connect();
+        $userAssignments = $db->table('penugasan')
+            ->select('penugasan.id, penugasan.wilayah, penugasan.tahapan, users.nama AS nama_pengguna')
+            ->join('users', 'users.id = penugasan.pengawas_id')
+            ->where('penugasan.pengawas_id', session()->get('user_id'))
+            ->orderBy('penugasan.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+        $completedAssignmentIds = $this->getCompletedAssignmentIds();
+        $assignments = array_values(array_filter(
+            $userAssignments,
+            static fn (array $assignment): bool => !in_array(
+                (int) $assignment['id'],
+                $completedAssignmentIds,
+                true
+            )
+        ));
+
+        if ($assignments === [] && (
+            $userAssignments !== []
+            || session()->get('role') === 'pengawas'
+        )) {
+            return redirect()->to('/lhp')
+                ->with('error', 'Tidak ada penugasan aktif. Semua penugasan Anda sudah selesai atau belum diberikan.');
+        }
+
         return view('lhp/form', [
-            'title' => 'Tambah LHP',
-            'lhp'   => [],
+            'title'       => 'Tambah LHP',
+            'lhp'         => [],
+            'assignments' => $assignments,
         ]);
     }
 
@@ -82,6 +179,37 @@ class Lhp extends BaseController
         if (! in_array(session()->get('role'), ['pengawas', 'admin', 'pimpinan'], true)) {
             return redirect()->to('/lhp')
                 ->with('error', 'Anda tidak memiliki akses.');
+        }
+
+        $availableAssignments = (new PenugasanModel())
+            ->where('pengawas_id', session()->get('user_id'))
+            ->findAll();
+        $assignmentId = filter_var(
+            $this->request->getPost('assignment_id'),
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]
+        );
+        $assignment = $assignmentId !== false
+            ? (new PenugasanModel())
+                ->where('id', $assignmentId)
+                ->where('pengawas_id', session()->get('user_id'))
+                ->first()
+            : null;
+        if ($assignment !== null && in_array(
+            (int) $assignment['id'],
+            $this->getCompletedAssignmentIds(),
+            true
+        )) {
+            $assignment = null;
+        }
+        $requiresAssignment = session()->get('role') === 'pengawas'
+            || $availableAssignments !== [];
+
+        if (($requiresAssignment && $assignment === null)
+            || ($assignmentId !== false && $assignment === null)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Pilih penugasan yang diberikan kepada akun Anda.');
         }
 
         $rules = [
@@ -106,16 +234,28 @@ class Lhp extends BaseController
         $data = $this->getFormData();
 
         $data['user_id'] = session()->get('user_id');
+        if ($assignment !== null) {
+            $assignedUser = (new UserModel())->find($assignment['pengawas_id']);
+            if ($assignedUser === null) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Akun pengguna untuk penugasan ini tidak ditemukan.');
+            }
+
+            $data['assignment_id'] = $assignment['id'];
+            $data['tahapan'] = $assignment['tahapan'];
+            $data['kecamatan'] = $assignment['wilayah'];
+            $data['nama_pengawas'] = $assignedUser['nama'];
+        }
         $data['status'] = 'Draft';
         $data['nomor_lhp'] = $this->generateLhpNumber(
-            (string) $data['waktu_pengawasan'],
-            (string) $data['kecamatan']
+            (string) $data['waktu_pengawasan']
         );
 
         if ($data['nomor_lhp'] === null) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Nomor LHP gagal dibuat. Pastikan tanggal pengawasan dan kecamatan terisi dengan benar.');
+                ->with('error', 'Nomor LHP gagal dibuat. Pastikan tanggal pengawasan terisi dengan benar.');
         }
 
         // Simpan data utama terlebih dahulu.
@@ -163,9 +303,16 @@ class Lhp extends BaseController
             ->findAll();
 
         return view('lhp/detail', [
-            'title'    => 'Detail LHP',
-            'lhp'      => $lhp,
-            'lampiran' => $lampiran,
+            'title'        => 'Detail LHP',
+            'lhp'          => $lhp,
+            'lampiran'     => $lampiran,
+            'completeness' => $this->calculateCompleteness($lhp),
+            'returnQuery'  => http_build_query(array_filter([
+                'keyword' => $this->request->getGet('keyword'),
+                'status' => $this->request->getGet('status'),
+                'tahapan' => $this->request->getGet('tahapan'),
+                'kecamatan' => $this->request->getGet('kecamatan'),
+            ], static fn ($value): bool => is_string($value) && $value !== '')),
         ]);
     }
 
@@ -319,6 +466,30 @@ class Lhp extends BaseController
         }
 
         $data = $this->getFormData();
+        if (!empty($lhp['assignment_id'])) {
+            $assignment = (new PenugasanModel())
+                ->where('id', $lhp['assignment_id'])
+                ->where('pengawas_id', session()->get('user_id'))
+                ->first();
+
+            if ($assignment === null) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Penugasan LHP tidak ditemukan. Hubungi pimpinan.');
+            }
+
+            $pengawas = (new UserModel())->find($assignment['pengawas_id']);
+            if ($pengawas === null) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Akun Pengawas untuk penugasan ini tidak ditemukan.');
+            }
+
+            $data['assignment_id'] = $assignment['id'];
+            $data['tahapan'] = $assignment['tahapan'];
+            $data['kecamatan'] = $assignment['wilayah'];
+            $data['nama_pengawas'] = $pengawas['nama'];
+        }
 
         // Status tidak diubah ketika edit.
         $this->lhpModel->update($id, $data);
@@ -402,6 +573,85 @@ class Lhp extends BaseController
         }
 
         return $builder->first();
+    }
+
+    private function calculateCompleteness(array $lhp): array
+    {
+        $requiredFields = [
+            'nomor_lhp' => 'Nomor LHP',
+            'tahapan' => 'Tahapan',
+            'nama_pengawas' => 'Nama Pengawas',
+            'jabatan_pengawas' => 'Jabatan',
+            'bentuk_pengawasan' => 'Bentuk Pengawasan',
+            'tujuan_pengawasan' => 'Tujuan Pengawasan',
+            'sasaran_pengawasan' => 'Sasaran Pengawasan',
+            'waktu_pengawasan' => 'Waktu Pengawasan',
+            'tempat_pengawasan' => 'Tempat Pengawasan',
+            'kecamatan' => 'Kecamatan',
+            'desa' => 'Desa / Kelurahan',
+            'uraian_hasil' => 'Uraian Hasil',
+            'ada_potensi_sengketa' => 'Pernyataan Potensi Sengketa',
+        ];
+        $missing = [];
+
+        foreach ($requiredFields as $field => $label) {
+            $value = $lhp[$field] ?? null;
+            if ($value === null || (is_string($value) && trim($value) === '')) {
+                $missing[] = $label;
+            }
+        }
+
+        $total = count($requiredFields);
+        $completed = $total - count($missing);
+
+        return [
+            'completed' => $completed,
+            'total' => $total,
+            'percentage' => (int) round(($completed / $total) * 100),
+            'missing' => $missing,
+        ];
+    }
+
+    /**
+     * Gets assignment IDs with all primary LHP fields completed.
+     *
+     * The fields match the primary completeness indicator shown in the LHP list.
+     *
+     * @return list<int>
+     */
+    private function getCompletedAssignmentIds(): array
+    {
+        $builder = db_connect()->table('lhp')
+            ->select('assignment_id')
+            ->where('assignment_id IS NOT NULL', null, false);
+
+        foreach ([
+            'nomor_lhp',
+            'tahapan',
+            'nama_pengawas',
+            'jabatan_pengawas',
+            'bentuk_pengawasan',
+            'tujuan_pengawasan',
+            'sasaran_pengawasan',
+            'waktu_pengawasan',
+            'tempat_pengawasan',
+            'kecamatan',
+            'desa',
+            'uraian_hasil',
+        ] as $field) {
+            $builder->where(
+                "TRIM(COALESCE({$field}, '')) <> ''",
+                null,
+                false
+            );
+        }
+
+        $builder->where('ada_potensi_sengketa IS NOT NULL', null, false);
+
+        return array_map(
+            'intval',
+            array_column($builder->distinct()->get()->getResultArray(), 'assignment_id')
+        );
     }
 
     /**
@@ -529,7 +779,7 @@ class Lhp extends BaseController
         return str_replace('T', ' ', $value) . ':00';
     }
 
-    private function generateLhpNumber(string $waktuPengawasan, string $kecamatan): ?string
+    private function generateLhpNumber(string $waktuPengawasan): ?string
     {
         $tanggalPengawasan = substr($waktuPengawasan, 0, 10);
         $tanggalValid = \DateTimeImmutable::createFromFormat('!Y-m-d', $tanggalPengawasan);
@@ -537,15 +787,7 @@ class Lhp extends BaseController
         if (
             $tanggalValid === false
             || $tanggalValid->format('Y-m-d') !== $tanggalPengawasan
-            || trim($kecamatan) === ''
         ) {
-            return null;
-        }
-
-        preg_match('/^\s*(\p{L})/u', $kecamatan, $matches);
-        $inisialWilayah = strtoupper($matches[1] ?? '');
-
-        if ($inisialWilayah === '') {
             return null;
         }
 
@@ -554,7 +796,6 @@ class Lhp extends BaseController
             new \DateTimeZone('Asia/Jakarta')
         );
         $tahun = (int) $waktuSekarang->format('Y');
-        $terlambat = $tanggalPengawasan < $waktuSekarang->format('Y-m-d');
         $db = $this->lhpModel->db;
 
         $db->transBegin();
@@ -584,7 +825,7 @@ class Lhp extends BaseController
         foreach ($nomorLhpSebelumnya as $nomorSebelumnya) {
             if (
                 preg_match(
-                    '/^(\d+)(?:\.\p{L})?\/LHP\/(?:\d{1,2}\/)?(\d{4})(?:-[A-Z])?$/u',
+                    '/^(\d+)(?:\.\p{L})?\/LHP\/(?:PM\.01\.00\/)?(?:\d{1,2}\/)?(\d{4})(?:-[A-Z])?$/u',
                     (string) $nomorSebelumnya['nomor_lhp'],
                     $bagianNomor
                 ) === 1
@@ -596,11 +837,9 @@ class Lhp extends BaseController
 
         $nomorUrut = $nomorUrutTerakhir + 1;
         $bulan = $waktuSekarang->format('m');
-        $inisialNomor = $terlambat ? '.' . $inisialWilayah : '';
         $nomorLhp = sprintf(
-            '%03d%s/LHP/%s/%d',
+            '%03d/LHP/PM.01.00/%s/%d',
             $nomorUrut,
-            $inisialNomor,
             $bulan,
             $tahun
         );
@@ -608,9 +847,8 @@ class Lhp extends BaseController
         while ($this->lhpModel->where('nomor_lhp', $nomorLhp)->countAllResults() > 0) {
             $nomorUrut++;
             $nomorLhp = sprintf(
-                '%03d%s/LHP/%s/%d',
+                '%03d/LHP/PM.01.00/%s/%d',
                 $nomorUrut,
-                $inisialNomor,
                 $bulan,
                 $tahun
             );

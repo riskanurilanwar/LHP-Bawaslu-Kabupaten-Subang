@@ -42,7 +42,7 @@
 
             <!-- Foto Profil -->
             <div class="w-10 h-10 rounded-full
-                        bg-blue-100 text-blue-700
+                        bg-blue-100 text-red-700
                         flex items-center justify-center
                         font-bold">
 

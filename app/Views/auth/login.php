@@ -28,7 +28,7 @@
             <!-- Logo -->
             <div class="text-center mb-8">
 
-                <div class="mx-auto w-16 h-16 bg-blue-700
+                <div class="mx-auto w-16 h-16 bg-red-700
                             rounded-2xl flex items-center
                             justify-center text-white
                             text-2xl font-bold">
@@ -75,8 +75,8 @@
                         autofocus
                         class="w-full px-4 py-3 border
                                border-slate-300 rounded-lg
-                               focus:ring-2 focus:ring-blue-500
-                               focus:border-blue-500
+                               focus:ring-2 focus:ring-red-500
+                               focus:border-red-500
                                outline-none"
                     >
 
@@ -101,8 +101,8 @@
                         required
                         class="w-full px-4 py-3 border
                                border-slate-300 rounded-lg
-                               focus:ring-2 focus:ring-blue-500
-                               focus:border-blue-500
+                               focus:ring-2 focus:ring-red-500
+                               focus:border-red-500
                                outline-none"
                     >
 
@@ -111,8 +111,8 @@
                 <!-- Tombol Login -->
                 <button
                     type="submit"
-                    class="w-full bg-blue-700
-                           hover:bg-blue-800
+                    class="w-full bg-red-700
+                           hover:bg-red-800
                            text-white font-semibold
                            py-3 rounded-lg
                            transition duration-200"
@@ -149,7 +149,7 @@
                 text: <?= json_encode(
                     session()->getFlashdata('error')
                 ) ?>,
-                confirmButtonColor: '#1d4ed8'
+                confirmButtonColor: '#830000'
             });
 
         <?php endif; ?>
@@ -162,7 +162,7 @@
                 text: <?= json_encode(
                     session()->getFlashdata('success')
                 ) ?>,
-                confirmButtonColor: '#1d4ed8'
+                confirmButtonColor: '#830000'
             });
 
         <?php endif; ?>

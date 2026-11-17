@@ -22,29 +22,57 @@
         </a>
     </div>
 
-    <!-- Pencarian -->
+    <!-- Pencarian dan Filter -->
     <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <form action="<?= base_url('lhp') ?>" method="get"
-              class="flex flex-col gap-3 sm:flex-row">
+        <form action="<?= base_url('lhp') ?>" method="get" class="space-y-3">
 
             <input
                 type="text"
                 name="keyword"
-                value="<?= esc($_GET['keyword'] ?? '') ?>"
-                placeholder="Cari nomor LHP, wilayah, atau nama pengawas..."
+                value="<?= esc($keyword) ?>"
+                placeholder="Cari nomor, tahapan, wilayah, surat tugas, atau nama pengawas..."
                 class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             >
 
-            <button
-                type="submit"
-                class="rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
-                Cari
-            </button>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <select name="status"
+                        class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                    <option value="">Semua status</option>
+                    <option value="draft" <?= $statusFilter === 'draft' ? 'selected' : '' ?>>Draft</option>
+                    <option value="dikirim" <?= $statusFilter === 'dikirim' ? 'selected' : '' ?>>Dikirim</option>
+                </select>
 
-            <a href="<?= base_url('lhp') ?>"
-               class="rounded-lg border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-600 hover:bg-gray-50">
-                Reset
-            </a>
+                <select name="tahapan"
+                        class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                    <option value="">Semua tahapan</option>
+                    <?php foreach ($tahapanOptions as $option) : ?>
+                        <option value="<?= esc($option) ?>" <?= $tahapanFilter === $option ? 'selected' : '' ?>>
+                            <?= esc($option) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <select name="kecamatan"
+                        class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                    <option value="">Semua kecamatan</option>
+                    <?php foreach ($kecamatanOptions as $option) : ?>
+                        <option value="<?= esc($option) ?>" <?= $kecamatanFilter === $option ? 'selected' : '' ?>>
+                            <?= esc($option) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="flex-1 rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">
+                        Cari / Filter
+                    </button>
+                    <a href="<?= base_url('lhp') ?>"
+                       class="rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-600 hover:bg-gray-50">
+                        Reset
+                    </a>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -74,6 +102,10 @@
 
                         <th class="px-5 py-3 text-left font-semibold text-gray-600">
                             Pengawas
+                        </th>
+
+                        <th class="px-5 py-3 text-left font-semibold text-gray-600">
+                            Kelengkapan Data
                         </th>
 
                         <th class="px-5 py-3 text-left font-semibold text-gray-600">
@@ -115,9 +147,36 @@
                                 </td>
 
                                 <td class="px-5 py-4">
+                                    <div class="min-w-32"
+                                         title="<?= $item['completeness']['missing']
+                                            ? esc('Data belum terisi: ' . implode(', ', $item['completeness']['missing']))
+                                            : 'Data utama lengkap' ?>">
+                                        <div class="mb-1 flex items-center justify-between gap-2 text-xs">
+                                            <span class="<?= $item['completeness']['percentage'] === 100
+                                                ? 'text-green-700'
+                                                : 'text-amber-700' ?> font-medium">
+                                                <?= $item['completeness']['percentage'] === 100
+                                                    ? 'Lengkap'
+                                                    : 'Belum lengkap' ?>
+                                            </span>
+                                            <span class="text-gray-500">
+                                                <?= esc($item['completeness']['completed']) ?>/<?= esc($item['completeness']['total']) ?>
+                                            </span>
+                                        </div>
+                                        <div class="h-1.5 overflow-hidden rounded-full bg-gray-100">
+                                            <div class="h-full rounded-full <?= $item['completeness']['percentage'] === 100
+                                                ? 'bg-green-500'
+                                                : 'bg-amber-500' ?>"
+                                                 style="width: <?= esc($item['completeness']['percentage']) ?>%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-4">
                                     <div class="flex items-center gap-2">
 
-                                        <a href="<?= base_url('lhp/detail/' . $item['id']) ?>"
+                                        <a href="<?= base_url('lhp/detail/' . $item['id'])
+                                            . ($returnQuery !== '' ? '?' . esc($returnQuery) : '') ?>"
                                            class="rounded-md bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
                                             Detail
                                         </a>
@@ -145,7 +204,7 @@
                     <?php else: ?>
 
                         <tr>
-                            <td colspan="6"
+                            <td colspan="7"
                                 class="px-5 py-10 text-center text-gray-500">
                                 Belum ada data LHP yang tersedia.
                             </td>
@@ -159,7 +218,8 @@
 
         <!-- Pagination -->
         <div class="border-t border-gray-200 px-5 py-4">
-            <?= $pager->links('default', 'default_full') ?>
+            <?= $pager->only(['keyword', 'status', 'tahapan', 'kecamatan'])
+                ->links('default', 'default_full') ?>
         </div>
 
     </div>

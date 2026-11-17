@@ -178,18 +178,7 @@ $adaSengketa = (int) ($lhp['ada_potensi_sengketa'] ?? 0) === 1;
             break-inside: avoid;
         }
 
-        table.details td:last-child {
-            border-bottom: 1px dotted #555;
-        }
-
         .narrative {
-            background-image: repeating-linear-gradient(
-                to bottom,
-                transparent 0,
-                transparent calc(1.35em - 1px),
-                #aaa calc(1.35em - 1px),
-                #aaa 1.35em
-            );
             min-height: 36mm;
             padding: 2px 4px;
             white-space: normal;
@@ -392,7 +381,7 @@ $adaSengketa = (int) ($lhp['ada_potensi_sengketa'] ?? 0) === 1;
         <?= esc($template['signature_city']) ?><?= esc($template['signature_date_separator']) ?> <?= esc(date('d-m-Y')) ?><br>
         <?= esc($template['signature_title']) ?>
         <div class="space"></div>
-        <strong><u><?= esc($lhp['nama_pengawas'] ?? '') ?></u></strong><br>
+        <strong><?= esc($lhp['nama_pengawas'] ?? '') ?></strong><br>
         <?= esc($lhp['jabatan_pengawas'] ?? '') ?>
     </div>
 

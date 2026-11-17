@@ -89,18 +89,71 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
+            <?php if (session()->get('role') === 'pengawas'): ?>
+                <a href="<?= base_url('lhp/edit/' . $lhp['id']) ?>"
+                   class="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-100">
+                    Edit LHP
+                </a>
+            <?php endif; ?>
             <a href="<?= base_url('lhp/cetak/' . $lhp['id']) ?>"
                target="_blank"
                rel="noopener noreferrer"
                class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800">
                 Cetak LHP
             </a>
-            <a href="<?= base_url('lhp') ?>"
+            <a href="<?= base_url('lhp') . ($returnQuery !== '' ? '?' . esc($returnQuery) : '') ?>"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                 Kembali ke Daftar
             </a>
         </div>
     </div>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Kelengkapan Data Utama
+                </h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    <?= esc($completeness['completed']) ?> dari
+                    <?= esc($completeness['total']) ?> elemen utama telah diisi.
+                </p>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-full px-3 py-1 text-sm font-semibold
+                <?= $completeness['percentage'] === 100
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-amber-100 text-amber-800' ?>">
+                <?= esc($completeness['percentage']) ?>%
+                <?= $completeness['percentage'] === 100 ? 'Lengkap' : 'Belum Lengkap' ?>
+            </span>
+        </div>
+
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div class="h-full rounded-full <?= $completeness['percentage'] === 100
+                ? 'bg-green-500'
+                : 'bg-amber-500' ?>"
+                 style="width: <?= esc($completeness['percentage']) ?>%"></div>
+        </div>
+
+        <?php if (!empty($completeness['missing'])): ?>
+            <div class="mt-4">
+                <p class="mb-2 text-sm font-medium text-slate-700">
+                    Data utama yang belum diisi:
+                </p>
+                <ul class="flex flex-wrap gap-2">
+                    <?php foreach ($completeness['missing'] as $field): ?>
+                        <li class="rounded-md bg-amber-50 px-2.5 py-1 text-xs text-amber-800">
+                            <?= esc($field) ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php else: ?>
+            <p class="mt-4 text-sm text-green-700">
+                Semua elemen utama formulir telah terisi.
+            </p>
+        <?php endif; ?>
+    </section>
 
     <?php foreach ($sections as $title => $fields): ?>
         <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
