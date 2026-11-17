@@ -8,33 +8,58 @@ $roleLabels = [
     'pimpinan' => 'Pimpinan',
     'pengawas' => 'Pengawas',
 ];
+
+$roleBadges = [
+    'admin'    => 'bg-red-50 text-red-700 ring-1 ring-red-600/20',
+    'pimpinan' => 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20',
+    'pengawas' => 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20',
+];
 ?>
 
 <div class="space-y-6">
+
+    <!-- Header Halaman -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <p class="text-sm font-medium text-blue-700">Administrasi</p>
-            <h1 class="mt-1 text-2xl font-bold text-slate-800">Kelola Pengguna</h1>
-            <p class="mt-1 text-sm text-slate-500">Tambah akun, perbarui informasi, dan atur akses pengguna.</p>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <p class="text-xs font-bold uppercase tracking-wider text-red-700">Administrasi Sistem</p>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5">
+                <i class="fa-solid fa-users text-red-700"></i>
+                Kelola Pengguna
+            </h1>
+            <p class="mt-1 text-xs sm:text-sm text-slate-500">
+                Tambah akun baru, perbarui data profil, dan atur hak akses pengguna sistem LHP Bawaslu.
+            </p>
         </div>
+
         <a
             href="<?= base_url('kelola-pengguna/tambah') ?>"
-            class="inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-900/30 hover:from-red-700 hover:to-red-800 transition-all duration-150 shrink-0"
         >
-            + Tambah Pengguna
+            <i class="fa-solid fa-user-plus text-xs"></i>
+            <span>Tambah Pengguna</span>
         </a>
     </div>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <form action="<?= base_url('kelola-pengguna') ?>" method="get" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <input
-                type="search"
-                name="keyword"
-                value="<?= esc($keyword) ?>"
-                placeholder="Cari nama, username, email..."
-                class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-            <select name="role" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+    <!-- Filter dan Pencarian -->
+    <section class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+        <form action="<?= base_url('kelola-pengguna') ?>" method="get" class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <input
+                    type="search"
+                    name="keyword"
+                    value="<?= esc($keyword) ?>"
+                    placeholder="Cari nama, username, email..."
+                    class="w-full rounded-xl border border-slate-300 bg-slate-50/70 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all"
+                >
+            </div>
+
+            <select name="role" class="rounded-xl border border-slate-300 bg-slate-50/70 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:bg-white focus:border-red-500 transition-all">
                 <option value="">Semua role</option>
                 <?php foreach ($roleLabels as $value => $label) : ?>
                     <option value="<?= esc($value) ?>" <?= $role === $value ? 'selected' : '' ?>>
@@ -42,73 +67,99 @@ $roleLabels = [
                     </option>
                 <?php endforeach; ?>
             </select>
-            <select name="status" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+
+            <select name="status" class="rounded-xl border border-slate-300 bg-slate-50/70 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:bg-white focus:border-red-500 transition-all">
                 <option value="">Semua status</option>
                 <option value="1" <?= $status === '1' ? 'selected' : '' ?>>Aktif</option>
                 <option value="0" <?= $status === '0' ? 'selected' : '' ?>>Nonaktif</option>
             </select>
+
             <div class="flex gap-2">
-                <button type="submit" class="flex-1 rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700">
-                    Terapkan
+                <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-900 transition-colors">
+                    <i class="fa-solid fa-filter text-xs"></i>
+                    <span>Terapkan</span>
                 </button>
-                <a href="<?= base_url('kelola-pengguna') ?>" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                    Reset
+                <a href="<?= base_url('kelola-pengguna') ?>" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                    <span>Reset</span>
                 </a>
             </div>
         </form>
     </section>
 
-    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <!-- Tabel Pengguna -->
+    <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
-                <thead class="bg-slate-50">
+            <table class="min-w-full divide-y divide-slate-100 text-sm">
+                <thead class="bg-slate-50/90 text-slate-600 text-xs font-bold uppercase tracking-wider">
                     <tr>
-                        <th class="px-5 py-3 text-left font-semibold text-slate-600">Pengguna</th>
-                        <th class="px-5 py-3 text-left font-semibold text-slate-600">Kontak</th>
-                        <th class="px-5 py-3 text-left font-semibold text-slate-600">Role / Jabatan</th>
-                        <th class="px-5 py-3 text-left font-semibold text-slate-600">Status</th>
-                        <th class="px-5 py-3 text-right font-semibold text-slate-600">Aksi</th>
+                        <th class="px-5 py-3.5 text-left">Nama & Username</th>
+                        <th class="px-5 py-3.5 text-left">Kontak</th>
+                        <th class="px-5 py-3.5 text-left">Role & Jabatan</th>
+                        <th class="px-5 py-3.5 text-left">Status</th>
+                        <th class="px-5 py-3.5 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <?php if ($users !== []) : ?>
                         <?php foreach ($users as $user) : ?>
-                            <tr class="hover:bg-slate-50">
+                            <tr class="hover:bg-slate-50/70 transition-colors">
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <p class="font-semibold text-slate-800"><?= esc($user['nama']) ?></p>
-                                    <p class="mt-0.5 text-xs text-slate-500">@<?= esc($user['username']) ?></p>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                            <?= strtoupper(substr($user['nama'] ?? 'U', 0, 1)) ?>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900"><?= esc($user['nama']) ?></p>
+                                            <p class="text-xs text-slate-400">@<?= esc($user['username']) ?></p>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="px-5 py-4 text-slate-600">
-                                    <p><?= esc($user['email'] ?: '-') ?></p>
-                                    <p class="mt-0.5 text-xs text-slate-400"><?= esc($user['no_hp'] ?: '-') ?></p>
+                                <td class="px-5 py-4 text-xs text-slate-600">
+                                    <div class="flex items-center gap-1.5 font-medium">
+                                        <i class="fa-regular fa-envelope text-slate-400 text-[11px]"></i>
+                                        <span><?= esc($user['email'] ?: '-') ?></span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-slate-400 mt-1">
+                                        <i class="fa-solid fa-phone text-[10px]"></i>
+                                        <span><?= esc($user['no_hp'] ?: '-') ?></span>
+                                    </div>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <p class="font-medium text-slate-700"><?= esc($roleLabels[$user['role']] ?? $user['role']) ?></p>
-                                    <p class="mt-0.5 text-xs text-slate-500"><?= esc($user['jabatan'] ?: '-') ?></p>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold <?= $roleBadges[$user['role']] ?? 'bg-slate-100 text-slate-700' ?>">
+                                        <?= esc($roleLabels[$user['role']] ?? $user['role']) ?>
+                                    </span>
+                                    <p class="mt-1 text-xs text-slate-500 font-medium"><?= esc($user['jabatan'] ?: '-') ?></p>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <?php if ((int) $user['is_active'] === 1) : ?>
-                                        <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Aktif</span>
-                                    <?php else : ?>
-                                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Nonaktif</span>
-                                    <?php endif; ?>
+                                    <?php $isActive = (int) $user['is_active'] === 1; ?>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold
+                                        <?= $isActive ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' : 'bg-slate-100 text-slate-600' ?>">
+                                        <span class="w-1.5 h-1.5 rounded-full <?= $isActive ? 'bg-emerald-500' : 'bg-slate-400' ?>"></span>
+                                        <?= $isActive ? 'Aktif' : 'Nonaktif' ?>
+                                    </span>
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <div class="flex justify-end gap-2">
+                                <td class="whitespace-nowrap px-5 py-4 text-right">
+                                    <div class="flex justify-end items-center gap-2">
                                         <a
                                             href="<?= base_url('kelola-pengguna/edit/' . $user['id']) ?>"
-                                            class="rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                            class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
                                         >
-                                            Edit
+                                            <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                            <span>Edit</span>
                                         </a>
                                         <?php if ((int) $user['id'] !== (int) session()->get('user_id')) : ?>
                                             <form action="<?= base_url('kelola-pengguna/status/' . $user['id']) ?>" method="post">
                                                 <?= csrf_field() ?>
                                                 <button
                                                     type="submit"
-                                                    class="rounded-md px-3 py-1.5 text-xs font-semibold <?= (int) $user['is_active'] === 1 ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100' ?>"
+                                                    class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors
+                                                        <?= (int) $user['is_active'] === 1
+                                                            ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/50'
+                                                            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/50' ?>"
                                                 >
-                                                    <?= (int) $user['is_active'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?>
+                                                    <i class="fa-solid <?= (int) $user['is_active'] === 1 ? 'fa-ban' : 'fa-check' ?> text-[10px]"></i>
+                                                    <span><?= (int) $user['is_active'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?></span>
                                                 </button>
                                             </form>
                                         <?php endif; ?>
@@ -118,15 +169,21 @@ $roleLabels = [
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5" class="px-5 py-12 text-center text-slate-500">
-                                Tidak ada pengguna yang cocok dengan pencarian.
+                            <td colspan="5" class="px-5 py-14 text-center">
+                                <div class="max-w-xs mx-auto text-center">
+                                    <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
+                                        <i class="fa-solid fa-user-xmark"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">Pengguna Tidak Ditemukan</p>
+                                    <p class="text-xs text-slate-400 mt-1">Tidak ada data pengguna yang cocok dengan kriteria pencarian.</p>
+                                </div>
                             </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
-        <div class="border-t border-slate-200 px-5 py-4">
+        <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5">
             <?= $pager->links('default', 'default_full') ?>
         </div>
     </section>
